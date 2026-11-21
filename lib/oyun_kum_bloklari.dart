@@ -80,7 +80,7 @@ final kumBloklariConfig = GameConfig(
       'Đổ cát, xây cầu màu!',
       'Ibuhos ang buhangin, gumawa ng tulay ng kulay!',
     ],
-  seedColor: const Color(0xFFD4A373),
+  seedColor: const Color(0xFFC9963B),
   icon: Icons.grain_rounded,
   rules: SandRules(),
   buildPlay: (ctx) => SandView(ctx: ctx),
