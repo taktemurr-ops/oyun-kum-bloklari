@@ -6,11 +6,11 @@ import 'package:studio_core/core/rng.dart';
 /// Kum Blokları: bırakılan parça kum tanelerine dönüşür ve akar. Aynı renk
 /// kum soldan sağa kesintisiz bir köprü kurarsa silinir.
 
-const int kCellsW = 10;
-const int kCellsH = 16;
+const int kCellsW = 8;
+const int kCellsH = 14;
 const int kG = 3; // bir karede kaç tane (kenar)
-const int kSW = kCellsW * kG; // 30
-const int kSH = kCellsH * kG; // 48
+const int kSW = kCellsW * kG; // 24
+const int kSH = kCellsH * kG; // 42
 const int kDanger = kG * 2; // en üst iki kare: taşma bölgesi
 
 const List<List<List<int>>> kSandShapes = [
@@ -50,7 +50,7 @@ SandLevel generateSandLevel(LevelSpec spec) {
   final endless = zen || spec.mode == GameModeId.endless || spec.mode == GameModeId.timeAttack;
   return SandLevel(
     colors: d >= 7 ? 4 : 3,
-    target: endless ? 0 : 1 + d ~/ 3,
+    target: endless ? 0 : 1 + d,
     seed: mixSeed([spec.seed, 7070]),
     difficulty: d,
     zen: zen,
@@ -72,6 +72,57 @@ class SandGame {
   SandGame(this.level) {
     _rng = SeededRandom(level.seed);
     _refill();
+  }
+
+  SandGame._copy(this.level);
+
+  SandGame clone() {
+    final c = SandGame._copy(level);
+    c.g = List<int>.of(g);
+    for (var i = 0; i < 3; i++) {
+      c.tray[i] = tray[i];
+    }
+    c._rng = _rng.copy();
+    c.score = score;
+    c.bridges = bridges;
+    c.moves = moves;
+    c.grainsCleared = grainsCleared;
+    c.lost = lost;
+    c._pass = _pass;
+    return c;
+  }
+
+  /// Bir rengin en geniş bağlı bölgesinin yatay uzunluğu.
+  int reach(int col) {
+    final seen = List<bool>.filled(g.length, false);
+    var best = 0;
+    for (var i = 0; i < g.length; i++) {
+      if (g[i] != col || seen[i]) continue;
+      var lo = kSW, hi = -1;
+      final st = [i];
+      seen[i] = true;
+      while (st.isNotEmpty) {
+        final j = st.removeLast();
+        final x = j % kSW;
+        if (x < lo) lo = x;
+        if (x > hi) hi = x;
+        for (final n in [if (x > 0) j - 1, if (x < kSW - 1) j + 1, if (j >= kSW) j - kSW, if (j + kSW < g.length) j + kSW]) {
+          if (!seen[n] && g[n] == col) {
+            seen[n] = true;
+            st.add(n);
+          }
+        }
+      }
+      if (hi - lo + 1 > best) best = hi - lo + 1;
+    }
+    return best;
+  }
+
+  int get topHeight {
+    for (var i = 0; i < g.length; i++) {
+      if (g[i] != 0) return kSH - i ~/ kSW;
+    }
+    return 0;
   }
 
   void _refill() {
@@ -226,7 +277,8 @@ class SandGame {
     return 0;
   }
 
-  /// Basit bot: alçak yere, aynı rengin çok olduğu yere bırak.
+  /// Bot: her aday hamleyi gerçekten oynar; köprü, aynı rengin yayılması
+  /// ve yükseklik üzerinden puanlar.
   (int, int)? bestMove() {
     (int, int)? best;
     var bestV = -1e18;
@@ -235,23 +287,11 @@ class SandGame {
       if (p == null) continue;
       for (var cx = 0; cx + p.w <= kCellsW; cx++) {
         if (!canDrop(t, cx)) continue;
-        var hMax = 0;
-        for (var gx = cx * kG; gx < (cx + p.w) * kG; gx++) {
-          final h = heightAt(gx);
-          if (h > hMax) hMax = h;
-        }
-        final surface = kSH - hMax;
-        var same = 0, other = 0;
-        for (var y = surface; y < (surface + kG * 3).clamp(0, kSH); y++) {
-          for (var gx = (cx * kG - kG).clamp(0, kSW); gx < ((cx + p.w) * kG + kG).clamp(0, kSW); gx++) {
-            final v = g[y * kSW + gx];
-            if (v == p.color) same++;
-            if (v != 0 && v != p.color) other++;
-          }
-        }
-        // Sol ya da sağ duvara değen aynı renk de değerli: köprü uçları.
-        final edge = (cx == 0 || cx + p.w == kCellsW) ? 8.0 : 0.0;
-        final v = same * 1.0 - other * 0.4 - hMax * 1.6 + edge - t * 0.01;
+        final c = clone();
+        c.drop(t, cx);
+        final b0 = c.bridges;
+        c.settle();
+        final v = (c.bridges - b0) * 1000.0 + c.reach(p.color) * 3 - c.topHeight * 2 - (c.lost ? 1e6 : 0) - t * 0.01;
         if (v > bestV) {
           bestV = v;
           best = (t, cx);
