@@ -116,7 +116,7 @@ final kumBloklariConfig = GameConfig(
       'टुकड़ा बोर्ड के ऊपर खींचें, या चुनकर कॉलम छुएँ। वह रेत बन जाता है।',
       'টুকরো বোর্ডের ওপর টানুন, বা বেছে একটি কলাম ছুঁন। সেটি বালি হয়ে যায়।',
       'Seret keping ke atas papan, atau pilih lalu ketuk kolom. Keping menjadi pasir.',
-      'Seret keping ke atas papan, atau pilih lalu ketik kolom. Keping menjadi pasir.',
+      'Seret keping ke atas papan, atau pilih kemudian ketik kolom. Keping menjadi pasir.',
       'ลากชิ้นไว้เหนือกระดาน หรือเลือกแล้วแตะคอลัมน์ ชิ้นจะกลายเป็นทราย',
       'Kéo mảnh lên trên bàn, hoặc chọn rồi chạm một cột. Nó hóa thành cát.',
       'I-drag ang piraso sa ibabaw ng board, o piliin at i-tap ang kolum. Nagiging buhangin ito.',

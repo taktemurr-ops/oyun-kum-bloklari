@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:studio_core/core/strings.dart';
 import 'package:studio_core/app/game_api.dart';
 import 'package:studio_core/app/services/audio.dart';
 import 'package:studio_core/core/game_rules.dart';
@@ -33,7 +34,6 @@ class _SandViewState extends State<SandView> with SingleTickerProviderStateMixin
   (int, int)? _hint;
 
   PlayContext get ctx => widget.ctx;
-  bool get _tr => ctx.lang == 'tr';
 
   @override
   void initState() {
@@ -147,8 +147,8 @@ class _SandViewState extends State<SandView> with SingleTickerProviderStateMixin
             Expanded(
               child: Text(
                   goal == 0
-                      ? (_tr ? 'Köprü: ${game.bridges} · Puan: ${game.score}' : 'Bridges: ${game.bridges} · Score: ${game.score}')
-                      : (_tr ? 'Köprü: ${game.bridges} / $goal' : 'Bridges: ${game.bridges} / $goal'),
+                      ? (Strings.tx(ctx.lang, 'Köprü: {0} · Puan: {1}', 'Bridges: {0} · Score: {1}', [game.bridges, game.score]))
+                      : (Strings.tx(ctx.lang, 'Köprü: {0} / {1}', 'Bridges: {0} / {1}', [game.bridges, goal])),
                   style: Theme.of(context).textTheme.titleSmall),
             ),
             if (left != null) ...[const Icon(Icons.layers_outlined, size: 18), Text(' $left  ')],
