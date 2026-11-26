@@ -14,15 +14,29 @@ import 'sand_rules.dart';
 
 final Map<StudioLook, ThemeData> _studioThemes = {};
 
-class SandView extends StatefulWidget {
+/// Oyun ekranı: düğmeler, çipler, üst bilgi ve pencereler onaylı koyu
+/// tasarımda (merkezin paleti, studio-core StudioLook); tahta çizimi kendi
+/// renklerini korur.
+class SandView extends StatelessWidget {
   final PlayContext ctx;
   const SandView({super.key, required this.ctx});
 
   @override
-  State<SandView> createState() => _SandViewState();
+  Widget build(BuildContext context) {
+    final look = StudioLook.of(context);
+    return Theme(data: _studioThemes[look] ??= buildStudioTheme(look), child: SandViewBody(ctx: ctx));
+  }
 }
 
-class _SandViewState extends State<SandView> with SingleTickerProviderStateMixin {
+class SandViewBody extends StatefulWidget {
+  final PlayContext ctx;
+  const SandViewBody({super.key, required this.ctx});
+
+  @override
+  State<SandViewBody> createState() => _SandViewState();
+}
+
+class _SandViewState extends State<SandViewBody> with SingleTickerProviderStateMixin {
   late SandLevel level;
   late SandGame game;
   late final Ticker _ticker;
@@ -136,15 +150,8 @@ class _SandViewState extends State<SandView> with SingleTickerProviderStateMixin
 
   int _cellX(double dx, int w) => ((dx / (_grain * kG)) - w / 2).round().clamp(0, kCellsW - w);
 
-  /// Oyun içi düğmeler, çipler ve yazılar onaylı koyu tasarımda (merkezin
-  /// paleti); tahta çizimi kendi renklerini korur.
   @override
   Widget build(BuildContext context) {
-    final look = StudioLook.of(context);
-    return Theme(data: _studioThemes[look] ??= buildStudioTheme(look), child: Builder(builder: _build));
-  }
-
-  Widget _build(BuildContext context) {
     return LayoutBuilder(builder: (context, cons) {
       _grain = math.max(3.0, math.min((cons.maxWidth - 24) / kSW, cons.maxHeight * 0.62 / kSH));
       final w = _grain * kSW, h = _grain * kSH;
