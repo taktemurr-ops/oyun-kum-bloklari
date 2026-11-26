@@ -7,19 +7,36 @@ import 'package:studio_core/core/strings.dart';
 import 'package:studio_core/app/game_api.dart';
 import 'package:studio_core/app/services/audio.dart';
 import 'package:studio_core/core/game_rules.dart';
+import 'package:studio_core/app/studio_ui.dart';
 
 import 'sand_engine.dart';
 import 'sand_rules.dart';
 
-class SandView extends StatefulWidget {
+final Map<StudioLook, ThemeData> _studioThemes = {};
+
+/// Oyun ekranı: düğmeler, çipler, üst bilgi ve pencereler onaylı koyu
+/// tasarımda (merkezin paleti, studio-core StudioLook); tahta çizimi kendi
+/// renklerini korur.
+class SandView extends StatelessWidget {
   final PlayContext ctx;
   const SandView({super.key, required this.ctx});
 
   @override
-  State<SandView> createState() => _SandViewState();
+  Widget build(BuildContext context) {
+    final look = StudioLook.of(context);
+    return Theme(data: _studioThemes[look] ??= buildStudioTheme(look), child: SandViewBody(ctx: ctx));
+  }
 }
 
-class _SandViewState extends State<SandView> with SingleTickerProviderStateMixin {
+class SandViewBody extends StatefulWidget {
+  final PlayContext ctx;
+  const SandViewBody({super.key, required this.ctx});
+
+  @override
+  State<SandViewBody> createState() => _SandViewState();
+}
+
+class _SandViewState extends State<SandViewBody> with SingleTickerProviderStateMixin {
   late SandLevel level;
   late SandGame game;
   late final Ticker _ticker;
